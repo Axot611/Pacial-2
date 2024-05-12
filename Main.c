@@ -113,12 +113,12 @@ struct Temporizador {
 
 	uint8_t myfsm = 0x00; //CREANDO VARIABLE QUE CONTROLA LA SECUENCIA DE ENCEDIDO DE LOS DISPLAY
 	uint8_t myfsm1 = 0x00; // CREANDO VARIABLER QUE CONTROLA LA MAQUINA DE ESTADOS FINITOS DEL KPAD
-	uint16_t mascara = 0x00; //MASCARA PARA SOLO USAR LOS ULTIMOS 4 BITS DEL GPIOB
+	uint16_t mask = 0x00; //mask PARA SOLO USAR LOS ULTIMOS 4 BITS DEL GPIOB
 
 	int numero;
 	int numero_uno[2] = {0,0};  //ARREGLO QUE ALAMCENA DOS DIGITOS
 	int numero_dos[2] = {0,0};  //ARREGLO QUE ALAMCENA DOS DIGITOS
-	int contador = 0; // CUENTA LOS DIGITOS ALMACENADOS EN EL ARREGLO
+	int cont = 0; // CUENTA LOS DIGITOS ALMACENADOS EN EL ARREGLO
 	int numero_entero; // NUMERO ENTERO CONVERSION DEL ARREGLO NUMERO_UNO
 	int numero_entero_dos; //ALMACENA EL SIGUENTE DATO DEL OPERADOR
 	char operador; // OPERACION QUE SE REALIZARA
@@ -128,7 +128,7 @@ struct Temporizador {
 	int estado = 0;
 	int tecla =0;
 
-	int Serial_Kpad = 0; //CAMBIA ENTRE ESTADO DE SERIAL Y RELOJ
+	int S_Keypad = 0; //CAMBIA ENTRE ESTADO DE SERIAL Y RELOJ
 
 	uint32_t inc_segundos;
 	void delay_ms(uint16_t n); //DEFINDIENDO EL METODO DE RETARDO
@@ -309,9 +309,9 @@ struct Temporizador {
 				myfsm = 0;
 				watch.segundo_unidad =0;
 				delay_ms(500); //DELAY PARA EVITAR REBOTE  DE PRESIONADO BOTONO MECANICO
-				Serial_Kpad ++; // CASO SI SE USA KPAD O SERIAL
-				if(Serial_Kpad >1){
-					Serial_Kpad =0; //PARA MANTENER EL BUCLE ENTRE 0 Y 1  DE LOS DOS ESTADOS POSIBLES
+				S_Keypad ++; // CASO SI SE USA KPAD O SERIAL
+				if(S_Keypad >1){
+					S_Keypad =0; //PARA MANTENER EL BUCLE ENTRE 0 Y 1  DE LOS DOS ESTADOS POSIBLES
 					watch.segundo_unidad =0;
 					myfsm =0;
 				}
@@ -319,7 +319,7 @@ struct Temporizador {
 
 			}
 			//MANEJO DEL DISPLAY
-			if(Serial_Kpad == 1){
+			if(S_Keypad == 1){
 
 				myfsm = 0;
 			}
@@ -328,11 +328,11 @@ struct Temporizador {
 			case 0:
 			{
 				//PARA EL DISPLAY 1 UNIDAD SEGUNDOS
-				if (Serial_Kpad == 0){
+				if (S_Keypad == 0){
 					myfsm++;
 
 				}
-				else if (Serial_Kpad == 1){
+				else if (S_Keypad == 1){
 					myfsm =0;
 				}
 				GPIOB ->BSRR |= 0XFF << 16; //LIMPIAR DISPLAY
@@ -346,14 +346,14 @@ struct Temporizador {
 			}
 			case 1:{
 				//PARA EL DISPLAY 2 DECENA SEGUNDOS
-				if (Serial_Kpad == 0){
+				if (S_Keypad == 0){
 					myfsm++;
 					GPIOB ->BSRR |= 0XFF << 16; //LIMPIAR DISPLAY
 					GPIOC ->BSRR |= 0X01 << 21; // LIMPIAR D0/C5
 					GPIOC ->BSRR |= 0X01 << 6 ; // HABILITA D1/C6
 					GPIOB ->BSRR |= decoder(watch.segundo_decimal) << 0; //MANDA A PINTAR DISPLAY 2
 				}
-				else if (Serial_Kpad == 1){
+				else if (S_Keypad == 1){
 					myfsm =0;
 				}
 
@@ -362,14 +362,14 @@ struct Temporizador {
 			}
 			case 2:{
 				//PARA EL DISPLAY 3 UNIDAD MINUTOS
-				if (Serial_Kpad == 0){
+				if (S_Keypad == 0){
 					myfsm++;
 					GPIOB ->BSRR |= 0XFF << 16; //LIMPIAR DISPLAY
 					GPIOC ->BSRR |= 0X01 << 22; // LIMPIAR D1/C6
 					GPIOC ->BSRR |= 0X01 << 8; // HABILITA D2/C8
 					GPIOB ->BSRR |= decoder(watch.minuto_unidad) << 0; //MANDA A PINTAR DISPLAY 3
 				}
-				else if (Serial_Kpad == 1){
+				else if (S_Keypad == 1){
 					myfsm =0;
 				}
 
@@ -380,14 +380,14 @@ struct Temporizador {
 			case 3:{
 				//PARA EL DISPLAY 4 DECENA MINUTOS
 
-				if (Serial_Kpad == 0){
+				if (S_Keypad == 0){
 					myfsm++;
 					GPIOB ->BSRR |= 0XFF << 16; //LIMPIAR DISPLAY
 					GPIOC ->BSRR |= 0X01 << 24; // LIMPIAR D2/C8
 					GPIOC ->BSRR |= 0X01 << 9; // HABILITA D3/C9
 					GPIOB ->BSRR |= decoder(watch.minuto_decimal) << 0; //MANDA A PINTAR DISPLAY 4
 				}
-				else if (Serial_Kpad == 1){
+				else if (S_Keypad == 1){
 					myfsm =0;
 				}
 
@@ -396,13 +396,13 @@ struct Temporizador {
 			}
 			case 4:{
 				//PARA EL DISPLAY 5 UNIDAD HORAS
-				if (Serial_Kpad == 0){
+				if (S_Keypad == 0){
 					myfsm++;
 					GPIOB ->BSRR |= 0XFF << 16; //LIMPIAR DISPLAY
 					GPIOC ->BSRR |= 0X01 << 25; // LIMPIAR D3/C9
 					GPIOB ->BSRR |= decoder(watch.hora_unidad) << 0; //MANDA A PINTAR DISPLAY 4
 				}
-				else if (Serial_Kpad == 1){
+				else if (S_Keypad == 1){
 					myfsm =0;
 				}
 
@@ -413,12 +413,12 @@ struct Temporizador {
 
 			case 5:{
 				//PARA EL DISPLAY 6 DECENA HORAS
-				if (Serial_Kpad == 0){
+				if (S_Keypad == 0){
 					myfsm =0;
 					GPIOB ->BSRR |= 0XFF << 16; //LIMPIAR DISPLAY
 					GPIOB ->BSRR |= decoder(watch.hora_decimal) << 0; //MANDA A PINTAR DISPLAY 4
 				}
-				else if (Serial_Kpad == 1){
+				else if (S_Keypad == 1){
 					myfsm =0;
 				}
 
@@ -440,7 +440,7 @@ struct Temporizador {
 
 
 			//EMPIEZA DISPLAY KPAD
-			if (Serial_Kpad==0){
+			if (S_Keypad==0){
 
 			switch(myfsm1)
 			{
@@ -450,27 +450,27 @@ struct Temporizador {
 				delay_ms(1);
 				GPIOB->ODR |= 1<<15; // APAGANDO PB15
 				GPIOB->ODR &= ~(1 << 12); //HABILITANDO PB12
-				mascara = GPIOB->IDR & 0XF00; //CREA MASCARA DE 1111-0000-0000
-				if (mascara == 0xE00){ //1110
+				mask = GPIOB->IDR & 0XF00; //CREA mask DE 1111-0000-0000
+				if (mask == 0xE00){ //1110
 					operador = '+';  //SUMA LETRA A
 					numero = 100;
 					caso =1;
 					tecla =0;
 
 				}
-				else if (mascara == 0xD00 ){ //1101
+				else if (mask == 0xD00 ){ //1101
 					operador = '-'; //RESTA LETRA B
 					numero =100;
 					caso =2;
 					tecla =0;
 				}
-				else if(mascara == 0xB00){ //1011
+				else if(mask == 0xB00){ //1011
 					operador = '*'; //MULTIPLICACION LETRA C
 					numero =100;
 					caso =3;
 					tecla =0;
 				}
-				else if (mascara ==0X700){ //0111
+				else if (mask ==0X700){ //0111
 					operador = '='; //RESULTADO LETRA D
 					tecla =0;
 
@@ -487,25 +487,25 @@ struct Temporizador {
 				myfsm1++;
 				GPIOB->ODR |= 1<<12; // APAGANDO PB12
 				GPIOB->ODR &= ~(1 << 13); //HABILITANDO PB13
-				mascara = GPIOB->IDR & 0XF00; //CREA MASCARA DE 1111-0000-0000
-				if (mascara == 0xE00){ //1110
+				mask = GPIOB->IDR & 0XF00; //CREA mask DE 1111-0000-0000
+				if (mask == 0xE00){ //1110
 					numero = 3; //NUMERO 3
 					operador = '/';
 					tecla =1;
 				}
-				else if(mascara == 0xD00 ){ //1101
+				else if(mask == 0xD00 ){ //1101
 					 //NUMERO 6
 					numero = 6;
 					operador = '/';
 					tecla =1;
 				}
-				else if (mascara == 0xB00){ //1011
+				else if (mask == 0xB00){ //1011
 					 // NUMERO 9
 					numero = 9;
 					operador = '/';
 					tecla =1;
 				}
-				else if (mascara ==0X700){ //0111
+				else if (mask ==0X700){ //0111
 					 //NUM
 				}
 
@@ -516,8 +516,8 @@ struct Temporizador {
 				myfsm1++;
 				GPIOB->ODR |= 1<<13; // APAGANDO PB13
 				GPIOB->ODR &= ~(1 << 14); //HABILITANDO PB14
-				mascara = GPIOB->IDR & 0XF00; //CREA MASCARA DE 1111-0000-0000
-				if (mascara == 0xE00){ //1110
+				mask = GPIOB->IDR & 0XF00; //CREA mask DE 1111-0000-0000
+				if (mask == 0xE00){ //1110
 					 //NUMERO 2
 					numero = 2;
 					operador = '/';
@@ -525,7 +525,7 @@ struct Temporizador {
 
 
 				}
-				else if (mascara == 0xD00 ){ //1101
+				else if (mask == 0xD00 ){ //1101
 					 //NUMERO 5
 					numero = 5;
 					operador = '/';
@@ -533,7 +533,7 @@ struct Temporizador {
 
 
 				}
-				else if (mascara == 0xB00){ //1011
+				else if (mask == 0xB00){ //1011
 					 //NUMERO 8
 					numero = 8;
 					operador = '/';
@@ -541,7 +541,7 @@ struct Temporizador {
 
 
 				}
-				else if (mascara ==0X700){ //0111
+				else if (mask ==0X700){ //0111
 					 //NUMERO 0
 					numero =0;
 					operador = '/';
@@ -559,8 +559,8 @@ struct Temporizador {
 
 				GPIOB->ODR |= 1<<14; // APAGANDO PB14
 				GPIOB->ODR &= ~(1 << 15); //HABILITANDO PB15
-				mascara = GPIOB->IDR & 0XF00; //CREA MASCARA DE 1111-0000-0000
-				if (mascara == 0xE00){ //1110
+				mask = GPIOB->IDR & 0XF00; //CREA mask DE 1111-0000-0000
+				if (mask == 0xE00){ //1110
 					 //NUMERO 1
 					numero = 1;
 					tecla =1;
@@ -568,22 +568,22 @@ struct Temporizador {
 
 
 				}
-				else if (mascara == 0xD00 ){ //1101
+				else if (mask == 0xD00 ){ //1101
 					 //NUMERO 4
 					numero =4;
 					tecla =1;
 					operador = '/';
 
 				}
-				else if(mascara == 0xB00){ //1011
+				else if(mask == 0xB00){ //1011
 					 //NUMERO 7
 					numero =7;
 					operador = '/';
 					tecla =1;
 				}
-				else if(mascara ==0X700){ //0111
+				else if(mask ==0X700){ //0111
 					 //NUMERO *
-					contador =0;
+					cont =0;
 					caso =0;
 					estado =0;
 					numero =100;
@@ -613,29 +613,29 @@ struct Temporizador {
 			//EMPIEZA CALCULADORA
 
 
-			if(mascara != 0XF00 && tecla ==1 ){ //ALMACENA EL NUMERO PRESIONADO
+			if(mask != 0XF00 && tecla ==1 ){ //ALMACENA EL NUMERO PRESIONADO
 				delay_ms(500);
 				if(estado ==0 ){
 					if(numero >=0 && numero <=9){
-						numero_uno[contador] = numero;
+						numero_uno[cont] = numero;
 
 						watch.segundo_decimal = numero_uno[0];
 						watch.segundo_unidad = numero_uno[1];
-						contador++; //AUMENTA PARA ALMACENAR SIGUIENTE NUMERO PRESIONADO
+						cont++; //AUMENTA PARA ALMACENAR SIGUIENTE NUMERO PRESIONADO
 					}
 				}
 				if(estado ==1){
 					if(numero >=0 && numero <=9){
-						numero_dos[contador] = numero;
+						numero_dos[cont] = numero;
 
 						watch.segundo_decimal = numero_dos[0];
 						watch.segundo_unidad = numero_dos[1];
-						contador++; //AUMENTA PARA ALMACENAR SIGUIENTE NUMERO PRESIONADO
+						cont++; //AUMENTA PARA ALMACENAR SIGUIENTE NUMERO PRESIONADO
 					}
 				}
 
-				if(contador>1 ){
-					contador = 0;
+				if(cont>1 ){
+					cont = 0;
 					}
 				}
 
@@ -643,7 +643,7 @@ struct Temporizador {
 				case '+':
 
 					numero_entero =numero_uno[0] * 10 + numero_uno[1]; // CONVERTIR ARREGLO EN NUMERO ENTERO
-					contador = 0;
+					cont = 0;
 					caso =1;
 					estado =1;
 					watch.segundo_decimal =0;
@@ -655,7 +655,7 @@ struct Temporizador {
 				case '-':
 
 					numero_entero =numero_uno[0] * 10 + numero_uno[1]; // CONVERTIR ARREGLO EN NUMERO ENTERO
-					contador = 0;
+					cont = 0;
 					caso =2;
 					estado =1;
 					watch.segundo_decimal =0;
@@ -664,7 +664,7 @@ struct Temporizador {
 					break;
 				case '*':
 					numero_entero =numero_uno[0] * 10 + numero_uno[1]; // CONVERTIR ARREGLO EN NUMERO ENTERO
-					contador = 0;
+					cont = 0;
 					caso =3;
 					estado =1;
 					watch.segundo_decimal =0;
@@ -678,12 +678,12 @@ struct Temporizador {
 						numero_entero_dos =numero_dos[0] * 10 + numero_dos[1];
 						resultado =numero_entero + numero_entero_dos;
 						if(resultado >=0 && resultado <=99){
-							int parteEntera = resultado /10;
-							int parteDecimal = resultado %10;
+							int pentera = resultado /10;
+							int pdecimal = resultado %10;
 
-							watch.segundo_unidad = parteDecimal ;
-							watch.segundo_decimal = parteEntera ;
-							contador =0;
+							watch.segundo_unidad = pdecimal ;
+							watch.segundo_decimal = pentera ;
+							cont =0;
 							caso =0;
 							estado =0;
 							numero =100;
@@ -696,7 +696,7 @@ struct Temporizador {
 						else {
 						watch.segundo_unidad = 0 ;
 						watch.segundo_decimal = 0 ;
-						contador =0;
+						cont =0;
 						caso =0;
 						estado =0;
 						numero =100;
@@ -711,11 +711,11 @@ struct Temporizador {
 						numero_entero_dos =numero_dos[0] * 10 + numero_dos[1];
 						resultado =numero_entero - numero_entero_dos;
 						if(resultado >=0 && resultado <=99){
-						int parteEntera = resultado /10;
-						int parteDecimal = resultado %10;
+						int pentera = resultado /10;
+						int pdecimal = resultado %10;
 
-						watch.segundo_unidad = parteDecimal ;
-						watch.segundo_decimal = parteEntera ;
+						watch.segundo_unidad = pdecimal ;
+						watch.segundo_decimal = pentera ;
 						caso =0;
 						estado =0;
 						numero =100;
@@ -743,11 +743,11 @@ struct Temporizador {
 						numero_entero_dos =numero_dos[0] * 10 + numero_dos[1];
 						resultado =numero_entero * numero_entero_dos;
 						if(resultado >=0 && resultado <=99){
-						int parteEntera = resultado /10;
-						int parteDecimal = resultado %10;
+						int pentera = resultado /10;
+						int pdecimal = resultado %10;
 
-						watch.segundo_unidad = parteDecimal ;
-						watch.segundo_decimal = parteEntera ;
+						watch.segundo_unidad = pdecimal ;
+						watch.segundo_decimal = pentera ;
 						caso =0;
 						estado =0;
 						numero =100;
@@ -780,11 +780,11 @@ struct Temporizador {
 
 
 			}
-			}// Serial_Kpad = 0
+			}// S_Keypad = 0
 
 			//MODO SERIAL
 
-			if(Serial_Kpad == 1){
+			if(S_Keypad == 1){
 				watch.segundo_decimal =0;
 				watch.segundo_unidad =0;
 			void UART_SendChar(char c) {
@@ -878,7 +878,7 @@ struct Temporizador {
 			       			              UART_SendString("\r\nDesea realizar otra operacion? (s/n): ");
 			       			              char choice = UART_ReceiveChar();
 			       			              if (choice == 'n') {
-			       			                  Serial_Kpad = 0; // Cambiar al modo de teclado numérico
+			       			                  S_Keypad = 0; // Cambiar al modo de teclado numérico
 			       			              }
 			       			          }
 			       			      }
